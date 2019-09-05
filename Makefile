@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -pedantic
+CFLAGS = -g -Wall -pedantic
 CLIBS = -lcmark
 
 default: dirs main.c
