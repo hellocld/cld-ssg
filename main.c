@@ -20,9 +20,9 @@ int create_index(struct post *posts, int totalPosts);
 int create_archive(struct post *posts, int totalPosts);
 int create_rss(struct post *posts, int totalPosts);
 
-void read_text(char *out, const char *path, int maxLength);
+char *read_text(const char *path, int maxLength);
 
-char buf[MAX_CONTENT_CHARS];
+char buf[MAX_POST_CHARS];
 
 int main()
 {
@@ -46,10 +46,19 @@ int main()
 	filecount = scandir("./testdir", &files, md_filter, alphasort);
 	printf("Found %d files\n", filecount);
 	
+	struct dirent **tf = files;
 	for( ; filecount > 0 ; filecount--) {
-		printf("%ld\t%s\n", (*files)->d_ino, (*files)->d_name);
-		files++;
+		printf("%ld\t%s\n", (*tf)->d_ino, (*tf)->d_name);
+		tf++;
 	}
+
+	printf("*** read_file testing ***\n\n");
+	char file[MAX_URL_CHARS] = "";
+	strcat(file, "./testdir/");
+	strcat(file, (*files)->d_name);
+	printf("%s\n", file);
+	char *read = read_text(file, MAX_POST_CHARS);
+	printf("%s\n%s", file, read);
 	return 0;
 }
 
@@ -68,11 +77,12 @@ struct post *create_post(const char *path)
 	struct post *p = malloc(sizeof(struct post));
 	
 	/* read in the post text file */
-	read_text(buf, path, MAX_CONTENT_CHARS);
+	char *tmp = read_text(path, MAX_POST_CHARS);
 	
 	/* convert the markdown to html */
-	p->content = cmark_markdown_to_html(buf, strlen(buf), CMARK_OPT_DEFAULT);
+	p->content = cmark_markdown_to_html(tmp, strlen(tmp), CMARK_OPT_DEFAULT);
 
+	free(tmp);
 	return p;
 }
 
@@ -101,10 +111,14 @@ int create_rss(struct post *posts, int totalPosts)
 }
 
 /* Reads a text file into a char* */
-void read_text(char *out, const char *path, int maxLength)
+char *read_text(const char *path, int maxLength)
 {
+	char *o = malloc(maxLength);
 	FILE *f = fopen(path, "r");
 	int c;
-	while((c = getc(f)) != EOF && --maxLength > 0) 
-		*(out++) = (char)c;
+	char *t = o;
+	while((c = fgetc(f)) != EOF && --maxLength > 0) 
+		*(t++) = (char)c;
+	fclose(f);
+	return o;
 }
