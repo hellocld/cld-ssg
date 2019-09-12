@@ -2,11 +2,26 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <string.h>
+#include "config.h"
 
 int md_filter(const struct dirent *);
 
+struct post {
+	char *title;
+	char *url;
+	char * content;
+	struct tm *time;
+};
+
+struct post *create_post(const char *path);
+int create_all_posts(struct post *posts);
+int create_index(struct post *posts, int totalPosts);
+int create_archive(struct post *posts, int totalPosts);
+int create_rss(struct post *posts, int totalPosts);
+
 int main()
 {
+	
 
 	printf("*** cmark testing ***\n\n");
 	char *md = "This is a *test* of some `markdown`";
@@ -40,4 +55,34 @@ int md_filter(const struct dirent *d)
 	if(strstr(d->d_name, ".md") != NULL)
 		return 1;
 	return 0;
+}
+
+/* Returns a pointer to a post struct from a .md file */
+struct post *create_post(const char *path)
+{
+
+}
+
+/* Generates all posts found in ./_posts; returns total number of posts */
+int create_all_posts(struct post *posts)
+{
+
+}
+
+/* Generates index.html using the latest posts */
+int create_index(struct post *posts, int totalPosts)
+{
+
+}
+
+/* Generates archive.html using all posts */
+int create_arcive(struct post *posts, int totalPosts)
+{
+
+}
+
+/* Creates an rss feed from all posts */
+int create_rss(struct post *posts, int totalPosts)
+{
+
 }
