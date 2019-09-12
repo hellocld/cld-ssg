@@ -26,8 +26,6 @@ char buf[MAX_POST_CHARS];
 
 int main()
 {
-	
-
 	printf("*** cmark testing ***\n\n");
 	char *md = "This is a *test* of some `markdown`";
 
@@ -45,7 +43,7 @@ int main()
 	int filecount = 0;
 	filecount = scandir("./testdir", &files, md_filter, alphasort);
 	printf("Found %d files\n", filecount);
-	
+
 	struct dirent **tf = files;
 	for( ; filecount > 0 ; filecount--) {
 		printf("%ld\t%s\n", (*tf)->d_ino, (*tf)->d_name);
@@ -81,10 +79,10 @@ int md_filter(const struct dirent *d)
 struct post *create_post(const char *path)
 {
 	struct post *p = malloc(sizeof(struct post));
-	
+
 	/* read in the post text file */
 	char *tmp = read_text(path, MAX_POST_CHARS);
-	
+
 	/* convert the markdown to html */
 	p->content = cmark_markdown_to_html(tmp, strlen(tmp), CMARK_OPT_DEFAULT);
 
@@ -123,7 +121,7 @@ char *read_text(const char *path, int maxLength)
 	FILE *f = fopen(path, "r");
 	int c;
 	char *t = o;
-	while((c = fgetc(f)) != EOF && --maxLength > 0) 
+	while((c = fgetc(f)) != EOF && --maxLength > 0)
 		*(t++) = (char)c;
 	*t = '\0';
 	fclose(f);
