@@ -1,6 +1,7 @@
 #include "cmark.h"
 #include <dirent.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include "config.h"
 
@@ -9,7 +10,7 @@ int md_filter(const struct dirent *);
 struct post {
 	char *title;
 	char *url;
-	char * content;
+	char *content;
 	struct tm *time;
 };
 
@@ -18,6 +19,10 @@ int create_all_posts(struct post *posts);
 int create_index(struct post *posts, int totalPosts);
 int create_archive(struct post *posts, int totalPosts);
 int create_rss(struct post *posts, int totalPosts);
+
+void read_text(char *out, const char *path, int maxLength);
+
+char buf[MAX_CONTENT_CHARS];
 
 int main()
 {
@@ -57,10 +62,18 @@ int md_filter(const struct dirent *d)
 	return 0;
 }
 
-/* Returns a pointer to a post struct from a .md file */
+/* Returns a pointer to a malloc'd post struct from a .md file */
 struct post *create_post(const char *path)
 {
+	struct post *p = malloc(sizeof(struct post));
+	
+	/* read in the post text file */
+	read_text(buf, path, MAX_CONTENT_CHARS);
+	
+	/* convert the markdown to html */
+	p->content = cmark_markdown_to_html(buf, strlen(buf), CMARK_OPT_DEFAULT);
 
+	return p;
 }
 
 /* Generates all posts found in ./_posts; returns total number of posts */
@@ -85,4 +98,13 @@ int create_arcive(struct post *posts, int totalPosts)
 int create_rss(struct post *posts, int totalPosts)
 {
 
+}
+
+/* Reads a text file into a char* */
+void read_text(char *out, const char *path, int maxLength)
+{
+	FILE *f = fopen(path, "r");
+	int c;
+	while((c = getc(f)) != EOF && --maxLength > 0) 
+		*(out++) = (char)c;
 }
