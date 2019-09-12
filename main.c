@@ -57,8 +57,14 @@ int main()
 	strcat(file, "./testdir/");
 	strcat(file, (*files)->d_name);
 	printf("%s\n", file);
-	char *read = read_text(file, MAX_POST_CHARS);
-	printf("%s\n%s", file, read);
+	struct post *tp = create_post(file);
+	printf("%s\n%s", file, tp->content);
+	free(tp->content);
+	free(tp);
+	free(testdir);
+	while(filecount-- > 0)
+		free(*files++);
+	free(files);
 	return 0;
 }
 
@@ -119,6 +125,7 @@ char *read_text(const char *path, int maxLength)
 	char *t = o;
 	while((c = fgetc(f)) != EOF && --maxLength > 0) 
 		*(t++) = (char)c;
+	*t = '\0';
 	fclose(f);
 	return o;
 }
