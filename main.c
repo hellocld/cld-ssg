@@ -15,6 +15,7 @@ struct post {
 };
 
 struct post *create_post(const char *path);
+char *get_title(struct cmark_node *root);
 int create_all_posts(struct post *posts);
 int create_index(struct post *posts, int totalPosts);
 int create_archive(struct post *posts, int totalPosts);
@@ -54,10 +55,10 @@ int main()
 	char file[MAX_URL_CHARS] = "";
 	strcat(file, "./testdir/");
 	strcat(file, (*files)->d_name);
-	printf("%s\n", file);
 	struct post *tp = create_post(file);
-	printf("%s\n%s", file, tp->content);
+	printf("File Path:\t%s\nPost Title:\t%s\n%s\n", file, tp->title, tp->content);
 	free(tp->content);
+	free(tp->title);
 	free(tp);
 	free(testdir);
 	while(filecount-- > 0)
@@ -82,12 +83,28 @@ struct post *create_post(const char *path)
 
 	/* read in the post text file */
 	char *tmp = read_text(path, MAX_POST_CHARS);
-
+	
 	/* convert the markdown to html */
 	p->content = cmark_markdown_to_html(tmp, strlen(tmp), CMARK_OPT_DEFAULT);
+	
+	p->title = get_title(cmark_parse_document(tmp, strlen(tmp), CMARK_OPT_DEFAULT));
 
 	free(tmp);
 	return p;
+}
+
+/* Gets the post title from the first HEADER in the cmark tree */
+char *get_title(struct cmark_node *root)
+{
+	cmark_iter *t_iter = cmark_iter_new(root);
+	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
+		if(cmark_node_get_type(cmark_iter_get_node(t_iter)) == CMARK_NODE_HEADING) {
+			cmark_iter_next(t_iter);
+			break;
+		}
+	cmark_node *t_title = cmark_iter_get_node(t_iter);
+	cmark_iter_free(t_iter);
+	return cmark_node_get_literal(t_title);
 }
 
 /* Generates all posts found in ./_posts; returns total number of posts */
