@@ -81,15 +81,18 @@ struct post *create_post(const char *path)
 {
 	struct post *p = malloc(sizeof(struct post));
 
+
 	/* read in the post text file */
 	char *tmp = read_text(path, MAX_POST_CHARS);
+	struct cmark_node *t_root = cmark_parse_document(tmp, strlen(tmp), CMARK_OPT_DEFAULT);
+	free(tmp);
 	
 	/* convert the markdown to html */
-	p->content = cmark_markdown_to_html(tmp, strlen(tmp), CMARK_OPT_DEFAULT);
+	p->content = cmark_render_html(t_root, CMARK_OPT_DEFAULT);
 	
-	p->title = get_title(cmark_parse_document(tmp, strlen(tmp), CMARK_OPT_DEFAULT));
+	p->title = get_title(t_root);
 
-	free(tmp);
+	free(t_root);
 	return p;
 }
 
