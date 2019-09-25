@@ -18,8 +18,9 @@ struct post {
 
 /* Post generation functions */
 struct post *create_post(const char *file);
-char *get_post_title(struct cmark_node *root);
+const char *get_post_title(struct cmark_node *root);
 struct tm *get_post_time(const char *file);
+char *create_post_url(struct tm *time, char *title);
 int create_all_posts(struct post *posts);
 int create_index(struct post *posts, int totalPosts);
 int create_archive(struct post *posts, int totalPosts);
@@ -49,7 +50,7 @@ int main()
 	printf("*** read_file testing ***\n\n");
 	char file[MAX_URL_CHARS] = "2019-09-24-20-24-real-test.md";
 	struct post *tp = create_post(file);
-	printf("File Path:\t%s\nPost Title:\t%s\n%s\n", file, tp->title, tp->content);
+	printf("File Path:\t%s\nPost Title:\t%s\nURL:\t%s\n%s\n", file, tp->title, tp->url, tp->content);
 	free(tp->content);
 	free(tp->title);
 	free(tp);
@@ -85,13 +86,13 @@ struct post *create_post(const char *file)
 
 	p->time = get_post_time(file);
 
-	/*p->url = create_post_url(p->time, p->title)*/
+	p->url = create_post_url(p->time, p->title);
 	free(t_root);
 	return p;
 }
 
 /* Gets the post title from the first HEADER in the cmark tree */
-char *get_post_title(struct cmark_node *root)
+const char *get_post_title(struct cmark_node *root)
 {
 	cmark_iter *t_iter = cmark_iter_new(root);
 	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
@@ -110,10 +111,23 @@ struct tm *get_post_time(const char *file)
 	struct tm *time = malloc(sizeof(struct tm));
 	char t_time[16] = "";
 	strncpy(t_time, file, 16);
-	char t_debug[32] = "";
 	if(strptime(t_time, "%Y-%m-%d-%H-%M", time) == NULL)
 		printf("ERROR: Failed to convert time\n");
 	return time;
+}
+
+char *create_post_url(struct tm *time, char *title)
+{
+	char *t_url = malloc(MAX_URL_CHARS);
+		sprintf(t_url, "/%d/%02d/%02d/%s.html", 
+			time->tm_year + 1900,
+			time->tm_mon,
+			time->tm_mday,
+			title);
+	char *c;
+	while((c = strchr(t_url, ' ')))
+		*c = '-';
+	return t_url;
 }
 
 /* Generates all posts found in ./_posts; returns total number of posts */
