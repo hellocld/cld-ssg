@@ -97,12 +97,19 @@ const char *get_post_title(struct cmark_node *root)
 	cmark_iter *t_iter = cmark_iter_new(root);
 	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
 		if(cmark_node_get_type(cmark_iter_get_node(t_iter)) == CMARK_NODE_HEADING) {
-			cmark_iter_next(t_iter);
 			break;
 		}
 	cmark_node *t_title = cmark_iter_get_node(t_iter);
 	cmark_iter_free(t_iter);
-	return cmark_node_get_literal(t_title);
+	t_iter = cmark_iter_new(t_title);
+	char *title = malloc(MAX_URL_CHARS);
+	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
+		if(cmark_node_get_type(cmark_iter_get_node(t_iter)) == CMARK_NODE_TEXT) 
+			strcat(title, cmark_node_get_literal(cmark_iter_get_node(t_iter)));
+	free(t_iter);
+	free(t_title);
+
+	return title;
 }
 
 /* Generates a tm struct based on the time in the post filename */
