@@ -1,11 +1,14 @@
-#include "cmark.h"
+#define _XOPEN_SOURCE 700 /* eliminates gcc warning about strptime */
+
 #include <dirent.h>
 #include <stdlib.h>
+#include <time.h>
 #include <stdio.h>
 #include <string.h>
-#define _XOPEN_SOURCE
-#include <time.h>
+
 #include "config.h"
+
+#include "cmark.h"
 
 int md_filter(const struct dirent *);
 
@@ -18,13 +21,17 @@ struct post {
 
 /* Post generation functions */
 struct post *create_post(const char *file);
-const char *get_post_title(struct cmark_node *root);
+char *get_post_title(struct cmark_node *root);
 struct tm *get_post_time(const char *file);
 char *create_post_url(struct tm *time, char *title);
 int create_all_posts(struct post *posts);
-int create_index(struct post *posts, int totalPosts);
-int create_archive(struct post *posts, int totalPosts);
-int create_rss(struct post *posts, int totalPosts);
+
+int write_index(struct post *posts, int totalPosts);
+int write_archive(struct post *posts, int totalPosts);
+int write_rss(struct post *posts, int totalPosts);
+int write_post(struct post *post);
+
+int create_directory(const char *path);
 
 char *read_text(const char *path, int maxLength);
 
@@ -50,7 +57,8 @@ int main()
 	printf("*** read_file testing ***\n\n");
 	char file[MAX_URL_CHARS] = "2019-09-24-20-24-real-test.md";
 	struct post *tp = create_post(file);
-	printf("File Path:\t%s\nPost Title:\t%s\nURL:\t%s\n%s\n", file, tp->title, tp->url, tp->content);
+	printf("File Path:\t%s\nPost Title:\t%s\nPost URL:\t%s\n%s\n", 
+			file, tp->title, tp->url, tp->content);
 	free(tp->content);
 	free(tp->title);
 	free(tp);
@@ -76,7 +84,8 @@ struct post *create_post(const char *file)
 	strcat(path, file);
 	/* read in the post text file */
 	char *tmp = read_text(path, MAX_POST_CHARS);
-	struct cmark_node *t_root = cmark_parse_document(tmp, strlen(tmp), CMARK_OPT_DEFAULT);
+	struct cmark_node *t_root = cmark_parse_document(
+			tmp, strlen(tmp), CMARK_OPT_DEFAULT);
 	free(tmp);
 	
 	/* convert the markdown to html */
@@ -92,13 +101,12 @@ struct post *create_post(const char *file)
 }
 
 /* Gets the post title from the first HEADER in the cmark tree */
-const char *get_post_title(struct cmark_node *root)
+char *get_post_title(struct cmark_node *root)
 {
 	cmark_iter *t_iter = cmark_iter_new(root);
 	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
-		if(cmark_node_get_type(cmark_iter_get_node(t_iter)) == CMARK_NODE_HEADING) {
+		if(cmark_node_get_type(cmark_iter_get_node(t_iter)) == CMARK_NODE_HEADING)
 			break;
-		}
 	cmark_node *t_title = cmark_iter_get_node(t_iter);
 	cmark_iter_free(t_iter);
 	t_iter = cmark_iter_new(t_title);
@@ -150,7 +158,7 @@ int create_index(struct post *posts, int totalPosts)
 }
 
 /* Generates archive.html using all posts */
-int create_arcive(struct post *posts, int totalPosts)
+int create_archive(struct post *posts, int totalPosts)
 {
 
 }
