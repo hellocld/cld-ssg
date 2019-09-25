@@ -5,6 +5,8 @@
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #include "config.h"
 
@@ -59,6 +61,9 @@ int main()
 	struct post *tp = create_post(file);
 	printf("File Path:\t%s\nPost Title:\t%s\nPost URL:\t%s\n%s\n", 
 			file, tp->title, tp->url, tp->content);
+
+	write_post(tp);
+
 	free(tp->content);
 	free(tp->title);
 	free(tp);
@@ -134,7 +139,7 @@ struct tm *get_post_time(const char *file)
 char *create_post_url(struct tm *time, char *title)
 {
 	char *t_url = malloc(MAX_URL_CHARS);
-		sprintf(t_url, "/%d/%02d/%02d/%s.html", 
+		sprintf(t_url, "%d/%02d/%02d/%s.html", 
 			time->tm_year + 1900,
 			time->tm_mon,
 			time->tm_mday,
@@ -145,29 +150,20 @@ char *create_post_url(struct tm *time, char *title)
 	return t_url;
 }
 
-/* Generates all posts found in ./_posts; returns total number of posts */
-int create_all_posts(struct post *posts)
+int write_post(struct post *post)
 {
+	char *dir = malloc(MAX_URL_CHARS);
+	sprintf(dir, "%s%s", HTMLDIR, post->url);
 
+	printf("DEBUG: %s\n", dir);
+
+	printf("%d\n", create_directory(dir));
+
+	FILE *f = fopen(post->url, "w");
+	fprintf(f, post->content);
+	fclose(f);
 }
 
-/* Generates index.html using the latest posts */
-int create_index(struct post *posts, int totalPosts)
-{
-
-}
-
-/* Generates archive.html using all posts */
-int create_archive(struct post *posts, int totalPosts)
-{
-
-}
-
-/* Creates an rss feed from all posts */
-int create_rss(struct post *posts, int totalPosts)
-{
-
-}
 
 /* Reads a text file into a char* */
 char *read_text(const char *path, int maxLength)
@@ -182,3 +178,26 @@ char *read_text(const char *path, int maxLength)
 	fclose(f);
 	return o;
 }
+
+/* Creates a directory structure based on the path provided */
+int create_directory(const char *path)
+{
+	int status;
+	mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	status = errno;
+	/*
+	char t_buf[MAX_URL_CHARS] = "";
+	char *dir = strtok(path, "/");
+	do {
+		strcat(t_buf, dir);
+		strcat(t_buf, "/");
+		mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		status = errno;
+		printf("%s\t%d\n", t_buf, status);
+		dir = strtok(NULL, "/");
+	} while (dir != NULL);
+	*/
+
+	return status;
+}
+

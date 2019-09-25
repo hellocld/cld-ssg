@@ -2,7 +2,7 @@ CC = gcc
 CFLAGS = -g -Wall -pedantic 
 CLIBS = -lcmark
 
-default: dirs main.c
+default: dirs main.c config.h
 	$(CC) $(CFLAGS) main.c -o ./bin/cld-ssg $(CLIBS)
 
 dirs:
