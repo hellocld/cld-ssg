@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#define _XOPEN_SOURCE
+#include <time.h>
 #include "config.h"
 
 int md_filter(const struct dirent *);
@@ -14,8 +16,10 @@ struct post {
 	struct tm *time;
 };
 
-struct post *create_post(const char *path);
-char *get_title(struct cmark_node *root);
+/* Post generation functions */
+struct post *create_post(const char *file);
+char *get_post_title(struct cmark_node *root);
+struct tm *get_post_time(const char *file);
 int create_all_posts(struct post *posts);
 int create_index(struct post *posts, int totalPosts);
 int create_archive(struct post *posts, int totalPosts);
@@ -27,43 +31,28 @@ char buf[MAX_POST_CHARS];
 
 int main()
 {
-	printf("*** cmark testing ***\n\n");
-	char *md = "This is a *test* of some `markdown`";
 
-	char *html = cmark_markdown_to_html(md, strlen(md), CMARK_OPT_DEFAULT);
-	printf("%s\n", html);
-	free(html);
+	/* Load header and footer html */
 
-	printf("*** dirent testing ***\n\n");
-	DIR *testdir = opendir("./testdir");
-	struct dirent *tde;
-	while((tde = readdir(testdir)) != NULL)
-		printf("%ld\t%s\n", tde->d_ino, tde->d_name);
-	printf("\n\n");
-	struct dirent **files;
-	int filecount = 0;
-	filecount = scandir("./testdir", &files, md_filter, alphasort);
-	printf("Found %d files\n", filecount);
+	/* Create website directories */
+	
+	/* Load all posts */
+	
+	/* Write post HTML pages */
 
-	struct dirent **tf = files;
-	for( ; filecount > 0 ; filecount--) {
-		printf("%ld\t%s\n", (*tf)->d_ino, (*tf)->d_name);
-		tf++;
-	}
+	/* Write index.html */
 
+	/* Write archive.html */
+
+	/* Copy images/videos/audio/static pages */
+	
 	printf("*** read_file testing ***\n\n");
-	char file[MAX_URL_CHARS] = "";
-	strcat(file, "./testdir/");
-	strcat(file, (*files)->d_name);
+	char file[MAX_URL_CHARS] = "2019-09-24-20-24-real-test.md";
 	struct post *tp = create_post(file);
 	printf("File Path:\t%s\nPost Title:\t%s\n%s\n", file, tp->title, tp->content);
 	free(tp->content);
 	free(tp->title);
 	free(tp);
-	free(testdir);
-	while(filecount-- > 0)
-		free(*files++);
-	free(files);
 	return 0;
 }
 
@@ -77,11 +66,13 @@ int md_filter(const struct dirent *d)
 }
 
 /* Returns a pointer to a malloc'd post struct from a .md file */
-struct post *create_post(const char *path)
+struct post *create_post(const char *file)
 {
 	struct post *p = malloc(sizeof(struct post));
 
-
+	char *path = malloc(MAX_URL_CHARS);
+	strcpy(path, POSTDIR);
+	strcat(path, file);
 	/* read in the post text file */
 	char *tmp = read_text(path, MAX_POST_CHARS);
 	struct cmark_node *t_root = cmark_parse_document(tmp, strlen(tmp), CMARK_OPT_DEFAULT);
@@ -90,14 +81,17 @@ struct post *create_post(const char *path)
 	/* convert the markdown to html */
 	p->content = cmark_render_html(t_root, CMARK_OPT_DEFAULT);
 	
-	p->title = get_title(t_root);
+	p->title = get_post_title(t_root);
 
+	p->time = get_post_time(file);
+
+	/*p->url = create_post_url(p->time, p->title)*/
 	free(t_root);
 	return p;
 }
 
 /* Gets the post title from the first HEADER in the cmark tree */
-char *get_title(struct cmark_node *root)
+char *get_post_title(struct cmark_node *root)
 {
 	cmark_iter *t_iter = cmark_iter_new(root);
 	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
@@ -108,6 +102,18 @@ char *get_title(struct cmark_node *root)
 	cmark_node *t_title = cmark_iter_get_node(t_iter);
 	cmark_iter_free(t_iter);
 	return cmark_node_get_literal(t_title);
+}
+
+/* Generates a tm struct based on the time in the post filename */
+struct tm *get_post_time(const char *file)
+{
+	struct tm *time = malloc(sizeof(struct tm));
+	char t_time[16] = "";
+	strncpy(t_time, file, 16);
+	char t_debug[32] = "";
+	if(strptime(t_time, "%Y-%m-%d-%H-%M", time) == NULL)
+		printf("ERROR: Failed to convert time\n");
+	return time;
 }
 
 /* Generates all posts found in ./_posts; returns total number of posts */
