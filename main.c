@@ -8,9 +8,10 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-#include "config.h"
-
+#include "util.h"
 #include "cmark.h"
+
+#include "config.h"
 
 int md_filter(const struct dirent *);
 
@@ -35,10 +36,6 @@ int write_archive(struct post *posts, int totalPosts);
 int write_rss(struct post *posts, int totalPosts);
 int write_post(struct post *post);
 
-int create_directory(const char *path);
-
-char *read_text(const char *path, int maxLength);
-
 char buf[MAX_POST_CHARS];
 
 int main()
@@ -57,7 +54,7 @@ int main()
 	/* Write archive.html */
 
 	/* Copy images/videos/audio/static pages */
-	
+
 	printf("*** read_file testing ***\n\n");
 	struct post *tp = create_post("2019-09-24-20-24-real-test.md");
 
@@ -183,24 +180,4 @@ int write_post(struct post *post)
 }
 
 
-/* Reads a text file into a char* */
-char *read_text(const char *path, int maxLength)
-{
-	char *o = malloc(maxLength);
-	FILE *f = fopen(path, "r");
-	int c;
-	char *t = o;
-	while((c = fgetc(f)) != EOF && --maxLength > 0)
-		*(t++) = (char)c;
-	*t = '\0';
-	fclose(f);
-	return o;
-}
-
-/* Creates a directory structure based on the path provided */
-int create_directory(const char *path)
-{
-	mkdir(path, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	
-}
 
