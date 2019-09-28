@@ -58,18 +58,10 @@ int main()
 	printf("*** read_file testing ***\n\n");
 	struct post *tp = create_post("2019-09-24-20-24-real-test.md");
 
-	printf("Title:\t%s\n", tp->title);
-	printf("Dir:\t%s\n", tp->dir);
-	printf("Source:\t%s\n", tp->fsource);
-	printf("HTML:\t%s\n", tp->fhtml);
-	printf("Content:\n%s\n", tp->content);
-
-//	write_post(tp);
+	write_post(tp);
 
 	free_post(tp);
-	free(tp->content);
-	free(tp->title);
-	free(tp);
+	
 	return 0;
 }
 
@@ -87,60 +79,72 @@ struct post *create_post(const char *file)
 {
 	struct post *p = malloc(sizeof(struct post));
 	p->fsource = malloc(MAX_URL_CHARS);
-	memcpy(p->fsource, buf, MAX_URL_CHARS);
+	memcpy(p->fsource, file, MAX_URL_CHARS);
 
 	sprintf(buf, "%s%s", POSTDIR, p->fsource);
-
+	printf("Loading post %s ... \n", buf);
 	/* read in the post text file */
 	char *tmp = read_text(buf, MAX_POST_CHARS);
+	printf("Parsing post to cmark_node...\n");
 	struct cmark_node *t_root = cmark_parse_document(
 			tmp, strlen(tmp), CMARK_OPT_DEFAULT);
 	free(tmp);
-	
+	printf("Rendering HTML...\n");
 	/* convert the markdown to html */
 	p->content = cmark_render_html(t_root, CMARK_OPT_DEFAULT);
-	
+	printf("Extracting title...\n");
 	/* extract the post title from the first header in the post */
 	p->title = get_post_title(t_root);
-
+	printf("Generating html filename...\n");
 	/* generate the html file name */
 	p->fhtml = malloc(MAX_URL_CHARS);
-	while((*(p->fhtml++) = *(p->title++)))
-		if(*(p->fhtml) == ' ')
-			*(p->fhtml) = '-';
+	char *t_html = p->fhtml;
+	char *t_title = p->title;
+	while((*t_html++ = *t_title++))
+		;
+	t_html = p->fhtml;
+	while((*t_html++))
+		if(*t_html == ' ')
+			*t_html = '-';
 	strncat(p->fhtml, ".html", 6);
-
+	printf("Generating post time...\n");
 	/* generate the struct tm representing the post date */
 	p->time = get_post_time(file);
-
+	printf("Generating html web directory...\n");
 	/* generate the base directory of the post */
 	p->dir = malloc(MAX_URL_CHARS);
 	sprintf(p->dir, "%d/%02d/%02d/", 
 		p->time->tm_year + 1900,
 		p->time->tm_mon,
 		p->time->tm_mday);
-
-	free(t_root);
+	printf("Generation complete. Freeing node...\n");
+	cmark_node_free(t_root);
 	return p;
 }
 
 /* Gets the post title from the first HEADER in the cmark tree */
 char *get_post_title(struct cmark_node *root)
 {
+	/* Loop through the tree to find the first header */
 	cmark_iter *t_iter = cmark_iter_new(root);
 	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
 		if(cmark_node_get_type(cmark_iter_get_node(t_iter)) == CMARK_NODE_HEADING)
 			break;
+	
+	/* Store the parent HEADING node */
 	cmark_node *t_title = cmark_iter_get_node(t_iter);
+	cmark_iter *t_titleIter = cmark_iter_new(t_title);
+	buf[0] = '\0';
+	while(cmark_iter_next(t_titleIter) != CMARK_EVENT_DONE)
+		if(cmark_node_get_type(cmark_iter_get_node(t_titleIter)) == CMARK_NODE_TEXT) 
+			strcat(buf, cmark_node_get_literal(cmark_iter_get_node(t_titleIter)));
 	cmark_iter_free(t_iter);
-	t_iter = cmark_iter_new(t_title);
-	char *title = malloc(MAX_URL_CHARS);
-	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
-		if(cmark_node_get_type(cmark_iter_get_node(t_iter)) == CMARK_NODE_TEXT) 
-			strcat(title, cmark_node_get_literal(cmark_iter_get_node(t_iter)));
-	free(t_iter);
-	free(t_title);
-
+	cmark_iter_free(t_titleIter);
+	char *title = malloc(strlen(buf)+1);
+	char *t = title;
+	int i = 0;
+	while((*t++ = buf[i++]))
+		;
 	return title;
 }
 
@@ -154,6 +158,7 @@ struct tm *get_post_time(const char *file)
 	return time;
 }
 
+/* Frees a post from the heap */
 void free_post(struct post *p)
 {
 	free(p->title);
@@ -165,19 +170,15 @@ void free_post(struct post *p)
 	free(p);
 }
 
+/* Writes a post to an html file */
 int write_post(struct post *post)
 {
-	sprintf(buf, "%s%s", HTMLDIR, post->dir);
-
-	printf("DEBUG: %s\n", buf);
-
-	printf("%d\n", create_directory(buf));
+	if(create_directory(buf) < 0)
+		return -1;
 
 	sprintf(buf, "%s%s%s", HTMLDIR, post->dir, post->fhtml);
 	FILE *f = fopen(buf, "w");
 	fprintf(f, post->content);
 	fclose(f);
+	return 0;
 }
-
-
-
