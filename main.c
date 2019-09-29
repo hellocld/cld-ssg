@@ -36,11 +36,15 @@ int write_rss(struct post *posts, int totalPosts);
 int write_post(struct post *post);
 
 char buf[MAX_POST_CHARS];
+char *header;
+char *footer;
 
 int main()
 {
 
 	/* Load header and footer html */
+	header = read_text(HEADER_HTML, MAX_POST_CHARS);
+	footer = read_text(FOOTER_HTML, MAX_POST_CHARS);
 
 	/* Load all posts */
 	struct dirent **t_mds;
@@ -58,9 +62,6 @@ int main()
 		write_post(posts[i]);
 	}
 
-
-	
-	
 	/* Write index.html */
 
 	/* Write archive.html */
@@ -192,7 +193,8 @@ int write_post(struct post *post)
 
 	sprintf(buf, "%s%s%s", HTMLDIR, post->dir, post->fhtml);
 	FILE *f = fopen(buf, "w");
-	fprintf(f, post->content);
+	sprintf(buf, "%s%s%s", header, post->content, footer);
+	fprintf(f, buf);
 	fclose(f);
 	return 0;
 }

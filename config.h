@@ -9,6 +9,10 @@
 #define HTMLDIR "testhtml/"
 /* Directory where .md posts are saved */
 #define POSTDIR	"postdir/"
+/* Header and footer files */
+#define HEADER_HTML "assets/header.html"
+#define FOOTER_HTML "assets/footer.html"
+
 #define INDEX_POSTS 10
 
 /* I should probably use some system defaults for these */
