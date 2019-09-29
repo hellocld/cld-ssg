@@ -29,7 +29,6 @@ struct post *create_post(const char *file);
 char *get_post_title(struct cmark_node *root);
 struct tm *get_post_time(const char *file);
 void free_post(struct post *p);
-int create_all_posts(struct post *posts);
 
 int write_index(struct post *posts, int totalPosts);
 int write_archive(struct post *posts, int totalPosts);
@@ -43,24 +42,36 @@ int main()
 
 	/* Load header and footer html */
 
-	/* Create website directories */
-	
 	/* Load all posts */
-	
-	/* Write post HTML pages */
+	struct dirent **t_mds;
+	int t_postcount = scandir(POSTDIR, &t_mds, md_filter, alphasort);
+	if(t_postcount < 0) {
+		printf("ERROR: Failed to load posts from %s\n", POSTDIR);
+		return -1;
+	}
 
+	int i = t_postcount;
+	struct post *posts[t_postcount];
+	while(i--) {
+		posts[i] = create_post(t_mds[i]->d_name);
+		/* Since we're already iterating through, write the post now */
+		write_post(posts[i]);
+	}
+
+
+	
+	
 	/* Write index.html */
 
 	/* Write archive.html */
 
 	/* Copy images/videos/audio/static pages */
 
-	printf("*** read_file testing ***\n\n");
-	struct post *tp = create_post("2019-09-24-20-24-real-test.md");
 
-	write_post(tp);
-
-	free_post(tp);
+	/* free up all the posts on the heap */
+	i = t_postcount;
+	while(i--)
+		free_post(posts[i]);
 	
 	return 0;
 }

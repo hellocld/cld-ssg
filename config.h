@@ -8,7 +8,7 @@
 /* Root directory for the generated website */
 #define HTMLDIR "testhtml/"
 /* Directory where .md posts are saved */
-#define POSTDIR	"testdir/"
+#define POSTDIR	"postdir/"
 #define INDEX_POSTS 10
 
 /* I should probably use some system defaults for these */

@@ -1,3 +1,4 @@
+*.o
 *.sw[p,o]
 bin/*
 testhtml/*
