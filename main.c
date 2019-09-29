@@ -173,6 +173,9 @@ void free_post(struct post *p)
 /* Writes a post to an html file */
 int write_post(struct post *post)
 {
+	/* Generate the directory structure */
+	sprintf(buf, "%s%s", HTMLDIR, post->dir);
+	printf("DEBUG: %s\n", buf);
 	if(create_directory(buf) < 0)
 		return -1;
 
