@@ -31,7 +31,7 @@ struct tm *get_post_time(const char *file);
 void free_post(struct post *p);
 
 int write_index(struct post *posts[], int totalPosts);
-int write_archive(struct post *posts, int totalPosts);
+int write_archive(struct post *posts[], int totalPosts);
 int write_rss(struct post *posts, int totalPosts);
 int write_post(struct post *post);
 
@@ -66,6 +66,7 @@ int main()
 	write_index(posts, t_postcount);
 
 	/* Write archive.html */
+	write_archive(posts, t_postcount);
 
 	/* Copy images/videos/audio/static pages */
 
@@ -204,7 +205,14 @@ int write_index(struct post *posts[], int totalPosts)
 {
 	sprintf(buf, "%s%s", HTMLDIR, "index.html");
 	FILE *f = fopen(buf, "w");
-	fprintf(f, header);
+	if(f == NULL) {
+		printf("write_index ERROR: %d\n", errno);
+		return -1;
+	}
+	if(fprintf(f, header) < 0) {
+		printf("write_index ERROR: %d\n", errno);
+		return -1;
+	}
 	int c = 0;
 	while(totalPosts-- > 0 && c++ < INDEX_POSTS)
 		fprintf(f, posts[totalPosts]->content);
@@ -212,3 +220,21 @@ int write_index(struct post *posts[], int totalPosts)
 	fclose(f);
 	return 0;
 }
+
+int write_archive(struct post *posts[], int totalPosts)
+{
+	sprintf(buf, "%s%s", HTMLDIR, "archive.html");
+	FILE *f = fopen(buf, "w");
+	fprintf(f, header);
+	fprintf(f, "<ul>\n");
+	while(totalPosts-- > 0)
+		fprintf(f, "<li><a href=\"%s%s\">%s</a></li>\n",
+				posts[totalPosts]->dir,
+				posts[totalPosts]->fhtml,
+				posts[totalPosts]->title);
+	fprintf(f, "</ul>\n");
+	fprintf(f, footer);
+	fclose(f);
+	return 0;
+}
+
