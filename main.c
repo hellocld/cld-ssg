@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <errno.h>
 
 #include "util.h"
@@ -34,6 +36,10 @@ int write_index(struct post *posts[], int totalPosts);
 int write_archive(struct post *posts[], int totalPosts);
 int write_rss(struct post *posts, int totalPosts);
 int write_post(struct post *post);
+
+void copy_resources(char *);
+
+void errprintf(const char *, int);
 
 char buf[MAX_POST_CHARS];
 char *header;
@@ -69,7 +75,7 @@ int main()
 	write_archive(posts, t_postcount);
 
 	/* Copy images/videos/audio/static pages */
-
+	copy_resources(RESOURCEDIR);
 
 	/* free up all the posts on the heap */
 	i = t_postcount;
@@ -206,17 +212,25 @@ int write_index(struct post *posts[], int totalPosts)
 	sprintf(buf, "%s%s", HTMLDIR, "index.html");
 	FILE *f = fopen(buf, "w");
 	if(f == NULL) {
-		printf("write_index ERROR: %d\n", errno);
+		errprintf("write_index", errno);
 		return -1;
 	}
 	if(fprintf(f, header) < 0) {
-		printf("write_index ERROR: %d\n", errno);
+		errprintf("write_index", errno);
 		return -1;
 	}
 	int c = 0;
 	while(totalPosts-- > 0 && c++ < INDEX_POSTS)
-		fprintf(f, posts[totalPosts]->content);
-	fprintf(f, footer);
+		if(fprintf(f, posts[totalPosts]->content) < 0) {
+			errprintf("write_index", errno);
+			fclose(f);
+			return -1;
+		}
+	if(fprintf(f, footer) < 0) {
+		errprintf("write_index", errno);
+		fclose(f);
+		return -1;
+	}
 	fclose(f);
 	return 0;
 }
@@ -238,3 +252,36 @@ int write_archive(struct post *posts[], int totalPosts)
 	return 0;
 }
 
+void errprintf(const char *function, int error)
+{
+	printf("%s ERROR: %d\n", function, error);
+}
+
+void copy_resources(char *dir)
+{
+	char t_dest[MAX_URL_CHARS];
+	struct stat t_stat;
+	/* find all files in resource directory */
+	struct dirent **t_files;
+	int t_count = scandir(dir, &t_files, NULL, NULL);
+	while(t_count-- > 0) {
+		if(t_files[t_count]->d_name[0] == '.')
+			continue;
+		printf("Found %s%s\n", dir, t_files[t_count]->d_name);
+		sprintf(buf, "%s%s", dir, t_files[t_count]->d_name);
+		stat(buf, &t_stat);
+		if(S_ISDIR(t_stat.st_mode)) {
+			sprintf(buf, "%s%s%s", HTMLDIR, dir + strlen(RESOURCEDIR), t_files[t_count]->d_name);
+			printf("DEBUG: creating directory %s\n", buf);
+			create_directory(buf);
+			sprintf(buf, "%s%s/", dir, t_files[t_count]->d_name);
+			copy_resources(buf);
+		}
+		if(S_ISREG(t_stat.st_mode)) {	
+			sprintf(t_dest, "%s%s", HTMLDIR, buf + strlen(RESOURCEDIR));
+			printf("DEBUG: copying %s to %s\n", buf, t_dest);
+			copy_file(buf, t_dest);
+		}
+	}
+
+}

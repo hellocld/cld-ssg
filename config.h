@@ -9,6 +9,8 @@
 #define HTMLDIR "testhtml/"
 /* Directory where .md posts are saved */
 #define POSTDIR	"postdir/"
+/* Directory containing anything you just need copied to HTMLDIR */
+#define RESOURCEDIR "files/"
 /* Header and footer files */
 #define HEADER_HTML "assets/header.html"
 #define FOOTER_HTML "assets/footer.html"

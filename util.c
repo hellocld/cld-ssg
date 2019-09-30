@@ -66,4 +66,33 @@ char *read_text(const char *path, int maxLength)
 	return o;
 }
 
-
+/* Copies a file from source to destination */
+int copy_file(const char *source, const char *dest)
+{
+	FILE *s = fopen(source, "r");
+	if(s == NULL) {
+		printf("copy_file ERROR: Failed to open %s: %d\n",
+				source,
+				errno);
+		return -1;
+	}
+	FILE *d = fopen(dest, "w");
+	if(s == NULL) {
+		printf("copy_file ERROR: Failed to open %s: %d\n",
+				dest,
+				errno);
+		return -1;
+	}
+	int c = fgetc(s);
+	while(c != EOF) {
+		if(fputc(c, d) == EOF) {
+			printf("copy_file ERROR: fputc error: %d",
+					errno);
+			return -1;
+		}
+		c = fgetc(s);
+	}
+	fclose(s);
+	fclose(d);
+	return 0;
+}

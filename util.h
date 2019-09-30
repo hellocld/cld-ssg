@@ -14,4 +14,7 @@ int dir_error(int, const char *);
 /* Reads a text file into a char* */
 char *read_text(const char *, int);
 
+/* Copies a file from one location to another */
+int copy_file(const char *, const char *);
+
 #endif
