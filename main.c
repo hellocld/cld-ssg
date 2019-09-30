@@ -30,7 +30,7 @@ char *get_post_title(struct cmark_node *root);
 struct tm *get_post_time(const char *file);
 void free_post(struct post *p);
 
-int write_index(struct post *posts, int totalPosts);
+int write_index(struct post *posts[], int totalPosts);
 int write_archive(struct post *posts, int totalPosts);
 int write_rss(struct post *posts, int totalPosts);
 int write_post(struct post *post);
@@ -63,6 +63,7 @@ int main()
 	}
 
 	/* Write index.html */
+	write_index(posts, t_postcount);
 
 	/* Write archive.html */
 
@@ -195,6 +196,19 @@ int write_post(struct post *post)
 	FILE *f = fopen(buf, "w");
 	sprintf(buf, "%s%s%s", header, post->content, footer);
 	fprintf(f, buf);
+	fclose(f);
+	return 0;
+}
+
+int write_index(struct post *posts[], int totalPosts)
+{
+	sprintf(buf, "%s%s", HTMLDIR, "index.html");
+	FILE *f = fopen(buf, "w");
+	fprintf(f, header);
+	int c = 0;
+	while(totalPosts-- > 0 && c++ < INDEX_POSTS)
+		fprintf(f, posts[totalPosts]->content);
+	fprintf(f, footer);
 	fclose(f);
 	return 0;
 }
