@@ -241,11 +241,14 @@ int write_archive(struct post *posts[], int totalPosts)
 	FILE *f = fopen(buf, "w");
 	fprintf(f, header);
 	fprintf(f, "<ul>\n");
-	while(totalPosts-- > 0)
-		fprintf(f, "<li><a href=\"%s%s\">%s</a></li>\n",
+	while(totalPosts-- > 0) {
+		strftime(buf, MAX_URL_CHARS, "%Y-%m-%d", posts[totalPosts]->time);
+		fprintf(f, "<li><a href=\"%s%s\">%s - %s</a></li>\n",
 				posts[totalPosts]->dir,
 				posts[totalPosts]->fhtml,
+				buf,
 				posts[totalPosts]->title);
+	}
 	fprintf(f, "</ul>\n");
 	fprintf(f, footer);
 	fclose(f);
