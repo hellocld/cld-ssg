@@ -89,7 +89,7 @@ int main()
 int md_filter(const struct dirent *d)
 {
 	/* if d->d_name doesn't end with ".md" we don't want it */
-	if(strstr(d->d_name, ".md") != NULL)
+	if(strcmp(d->d_name + (strlen(d->d_name) - 3), ".md") == 0)
 		return 1;
 	return 0;
 }
