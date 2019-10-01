@@ -6,9 +6,9 @@
  */
 
 /* Root directory for the generated website */
-#define HTMLDIR "testhtml/"
+#define HTMLDIR "html/"
 /* Directory where .md posts are saved */
-#define POSTDIR	"postdir/"
+#define POSTDIR	"posts/"
 /* Directory containing anything you just need copied to HTMLDIR */
 #define RESOURCEDIR "files/"
 /* Header and footer files */
