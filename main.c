@@ -229,7 +229,8 @@ int write_index(struct post *posts[], int totalPosts)
 			return -1;
 		}
 		fprintf(f, "</article>\n");
-		fprintf(f, "<hr>\n");
+		if(totalPosts > 0) 
+			fprintf(f, "<hr>\n");
 	}
 	if(fprintf(f, footer) < 0) {
 		errprintf("write_index", errno);
@@ -245,7 +246,7 @@ int write_archive(struct post *posts[], int totalPosts)
 	sprintf(buf, "%s%s", HTMLDIR, "archive.html");
 	FILE *f = fopen(buf, "w");
 	fprintf(f, header);
-	fprintf(f, "<article>\n<ul>\n");
+	fprintf(f, "<article class=\"archive\">\n<ul>\n");
 	while(totalPosts-- > 0) {
 		strftime(buf, MAX_URL_CHARS, "%Y-%m-%d", posts[totalPosts]->time);
 		fprintf(f, "<li><a href=\"%s%s\">%s - %s</a></li>\n",
@@ -254,7 +255,7 @@ int write_archive(struct post *posts[], int totalPosts)
 				buf,
 				posts[totalPosts]->title);
 	}
-	fprintf(f, "</ul>\n</article>\n");
+	fprintf(f, "</ul>\n</article>\n<hl>\n");
 	fprintf(f, footer);
 	fclose(f);
 	return 0;

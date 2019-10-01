@@ -1,3 +1,37 @@
+@font-face {
+    font-family: 'junicodeboldcondensed';
+    src: url('/fonts/junicode-boldcondensed-webfont.eot');
+    src: url('/fonts/junicode-boldcondensed-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/fonts/junicode-boldcondensed-webfont.woff2') format('woff2'),
+         url('/fonts/junicode-boldcondensed-webfont.woff') format('woff'),
+         url('/fonts/junicode-boldcondensed-webfont.ttf') format('truetype'),
+         url('/fonts/junicode-boldcondensed-webfont.svg#junicodeboldcondensed') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'junicodeitaliccondensed';
+    src: url('/fonts/junicode-italiccondensed-webfont.eot');
+    src: url('/fonts/junicode-italiccondensed-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/fonts/junicode-italiccondensed-webfont.woff2') format('woff2'),
+         url('/fonts/junicode-italiccondensed-webfont.woff') format('woff'),
+         url('/fonts/junicode-italiccondensed-webfont.ttf') format('truetype'),
+         url('/fonts/junicode-italiccondensed-webfont.svg#junicodeitaliccondensed') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+
+article h1 {
+	font-family: 'junicodeboldcondensed';
+	font-size: 2em;
+	padding: 0;
+	margin: 0;
+}
+
 body {
 	background: #d0c3b4;
 	font-family: sans-serif;
@@ -5,21 +39,41 @@ body {
 	max-width: 600px;
 	margin-left: auto;
 	margin-right: auto;
-	padding-left:16px;
-	padding-right: 16px;
+	padding-left: 1em;
+	padding-right: 1em;
 }
 
 header img {
-	max-width: 96px;
-	padding: 16px 8px;
+	max-width: 6em;
+	padding: 1em 0.5em;
 }
 
 nav ul {
 	list-style-type: none;
-	margin: 0;
+	margin: 0 0 0 0;
 	padding: 0;
 	background-color: #373530;
 	overflow: hidden;
+}
+
+.archive ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.archive li a {
+	display: block;
+	font-family: 'junicodeboldcondensed';
+	text-decoration: none;
+	background-color: #d0c3b4;
+	color: #373530;
+	padding-left: 0.1em;
+}
+
+.archive li a:hover {
+	background-color: #373530;
+	color: #d0c3b4;
 }
 
 nav li {
@@ -28,8 +82,9 @@ nav li {
 
 nav li a {
 	display: block;
-	width: 60px;
-	padding: 8px;
+	font-family: 'junicodeboldcondensed';
+	width: 3em;
+	padding: 0.5em;
 	text-decoration: none;
 	background-color: #373530;
 	text-align: center;
@@ -40,8 +95,17 @@ nav li a:hover {
 	color: #373530;
 	background-color: #d0c3b4;
 }
+
 article {
-	padding: 8px;
+	padding: 0.5em;
+}
+
+article h1 {
+	font-family: 'junicodeboldcondensed';
+	font-size: 3em;
+	letter-spacing: -.02em;
+	padding: 0;
+	margin: 0;
 }
 
 article img {
@@ -49,7 +113,7 @@ article img {
 }
 
 footer {
-	padding: 0 8px;
+	padding: 0 0.5em;
 	color: #373530;
-	font-style: italic;
+	font-family: 'junicodeboldcondensed';
 }
