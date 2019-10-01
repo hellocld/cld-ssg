@@ -196,12 +196,13 @@ int write_post(struct post *post)
 	/* Generate the directory structure */
 	sprintf(buf, "%s%s", HTMLDIR, post->dir);
 	printf("DEBUG: %s\n", buf);
+
 	if(create_directory(buf) < 0)
 		return -1;
 
 	sprintf(buf, "%s%s%s", HTMLDIR, post->dir, post->fhtml);
 	FILE *f = fopen(buf, "w");
-	sprintf(buf, "%s%s%s", header, post->content, footer);
+	sprintf(buf, "%s<article>%s</article>%s", header, post->content, footer);
 	fprintf(f, buf);
 	fclose(f);
 	return 0;
@@ -220,12 +221,16 @@ int write_index(struct post *posts[], int totalPosts)
 		return -1;
 	}
 	int c = 0;
-	while(totalPosts-- > 0 && c++ < INDEX_POSTS)
+	while(totalPosts-- > 0 && c++ < INDEX_POSTS) {
+		fprintf(f, "<article>\n");
 		if(fprintf(f, posts[totalPosts]->content) < 0) {
 			errprintf("write_index", errno);
 			fclose(f);
 			return -1;
 		}
+		fprintf(f, "</article>\n");
+		fprintf(f, "<hr>\n");
+	}
 	if(fprintf(f, footer) < 0) {
 		errprintf("write_index", errno);
 		fclose(f);
@@ -240,7 +245,7 @@ int write_archive(struct post *posts[], int totalPosts)
 	sprintf(buf, "%s%s", HTMLDIR, "archive.html");
 	FILE *f = fopen(buf, "w");
 	fprintf(f, header);
-	fprintf(f, "<ul>\n");
+	fprintf(f, "<article>\n<ul>\n");
 	while(totalPosts-- > 0) {
 		strftime(buf, MAX_URL_CHARS, "%Y-%m-%d", posts[totalPosts]->time);
 		fprintf(f, "<li><a href=\"%s%s\">%s - %s</a></li>\n",
@@ -249,7 +254,7 @@ int write_archive(struct post *posts[], int totalPosts)
 				buf,
 				posts[totalPosts]->title);
 	}
-	fprintf(f, "</ul>\n");
+	fprintf(f, "</ul>\n</article>\n");
 	fprintf(f, footer);
 	fclose(f);
 	return 0;
