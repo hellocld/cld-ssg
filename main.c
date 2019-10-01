@@ -267,10 +267,14 @@ void errprintf(const char *function, int error)
 
 void copy_resources(char *dir)
 {
+	printf("DEBUG: Creating directory %s\n", dir);
+	sprintf(buf, "%s%s", HTMLDIR, dir + strlen(RESOURCEDIR));
+	create_directory(buf);
 	char t_dest[MAX_URL_CHARS];
 	struct stat t_stat;
 	/* find all files in resource directory */
 	struct dirent **t_files;
+	printf("Scanning directory %s\n", dir);
 	int t_count = scandir(dir, &t_files, NULL, NULL);
 	while(t_count-- > 0) {
 		if(t_files[t_count]->d_name[0] == '.')
@@ -279,11 +283,10 @@ void copy_resources(char *dir)
 		sprintf(buf, "%s%s", dir, t_files[t_count]->d_name);
 		stat(buf, &t_stat);
 		if(S_ISDIR(t_stat.st_mode)) {
-			sprintf(buf, "%s%s%s", HTMLDIR, dir + strlen(RESOURCEDIR), t_files[t_count]->d_name);
-			printf("DEBUG: creating directory %s\n", buf);
-			create_directory(buf);
-			sprintf(buf, "%s%s/", dir, t_files[t_count]->d_name);
-			copy_resources(buf);
+			char t_dir[MAX_URL_CHARS];
+			sprintf(t_dir, "%s%s/", dir, t_files[t_count]->d_name);
+			printf("Directory found: %s\n", t_dir);
+			copy_resources(t_dir);
 		}
 		if(S_ISREG(t_stat.st_mode)) {	
 			sprintf(t_dest, "%s%s", HTMLDIR, buf + strlen(RESOURCEDIR));
