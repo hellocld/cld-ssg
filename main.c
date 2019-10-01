@@ -55,7 +55,7 @@ int main()
 	/* Load all posts */
 	struct dirent **t_mds;
 	int t_postcount = scandir(POSTDIR, &t_mds, md_filter, alphasort);
-	if(t_postcount < 0) {
+	if(t_postcount <= 0) {
 		printf("ERROR: Failed to load posts from %s\n", POSTDIR);
 		return -1;
 	}
