@@ -17,4 +17,7 @@ char *read_text(const char *, int);
 /* Copies a file from one location to another */
 int copy_file(const char *, const char *);
 
+/* A uniform error message printing thing */
+void errprintf(const char *, int);
+
 #endif

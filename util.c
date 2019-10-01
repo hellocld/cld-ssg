@@ -71,23 +71,18 @@ int copy_file(const char *source, const char *dest)
 {
 	FILE *s = fopen(source, "r");
 	if(s == NULL) {
-		printf("copy_file ERROR: Failed to open %s: %d\n",
-				source,
-				errno);
+		errprintf("copy_file", errno);
 		return -1;
 	}
 	FILE *d = fopen(dest, "w");
 	if(s == NULL) {
-		printf("copy_file ERROR: Failed to open %s: %d\n",
-				dest,
-				errno);
+		errprintf("copy_file", errno);
 		return -1;
 	}
 	int c = fgetc(s);
 	while(c != EOF) {
 		if(fputc(c, d) == EOF) {
-			printf("copy_file ERROR: fputc error: %d",
-					errno);
+			errprintf("copy_file", errno);
 			return -1;
 		}
 		c = fgetc(s);
@@ -96,3 +91,10 @@ int copy_file(const char *source, const char *dest)
 	fclose(d);
 	return 0;
 }
+
+/* A uniform error message printing thing */
+void errprintf(const char *function, int error)
+{
+	printf("*** %s ERROR: %d\n", function, error);
+}
+

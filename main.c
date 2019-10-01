@@ -47,7 +47,7 @@ char *footer;
 
 int main()
 {
-
+	printf("---- Beginning website generation...\n");
 	/* Load header and footer html */
 	header = read_text(HEADER_HTML, MAX_POST_CHARS);
 	footer = read_text(FOOTER_HTML, MAX_POST_CHARS);
@@ -81,7 +81,12 @@ int main()
 	i = t_postcount;
 	while(i--)
 		free_post(posts[i]);
-	
+
+	while(t_postcount--)
+		free(t_mds[t_postcount]);
+	free(t_mds);
+
+	printf("--- Website generated.\n");
 	return 0;
 }
 
@@ -193,9 +198,9 @@ void free_post(struct post *p)
 /* Writes a post to an html file */
 int write_post(struct post *post)
 {
+	printf("-- Writing post %s...\n", post->title);
 	/* Generate the directory structure */
 	sprintf(buf, "%s%s", HTMLDIR, post->dir);
-	printf("DEBUG: %s\n", buf);
 
 	if(create_directory(buf) < 0)
 		return -1;
@@ -205,11 +210,14 @@ int write_post(struct post *post)
 	sprintf(buf, "%s<article>%s</article>%s", header, post->content, footer);
 	fprintf(f, buf);
 	fclose(f);
+	printf("-- Post complete.\n");
 	return 0;
 }
 
+/* Writes the index.html file */
 int write_index(struct post *posts[], int totalPosts)
 {
+	printf("-- Writing index.html...\n");
 	sprintf(buf, "%s%s", HTMLDIR, "index.html");
 	FILE *f = fopen(buf, "w");
 	if(f == NULL) {
@@ -238,11 +246,14 @@ int write_index(struct post *posts[], int totalPosts)
 		return -1;
 	}
 	fclose(f);
+	printf("-- index.html complete.\n");
 	return 0;
 }
 
+/* Writes the archive.html file */
 int write_archive(struct post *posts[], int totalPosts)
 {
+	printf("-- Writing archive.html...\n");
 	sprintf(buf, "%s%s", HTMLDIR, "archive.html");
 	FILE *f = fopen(buf, "w");
 	fprintf(f, header);
@@ -258,17 +269,16 @@ int write_archive(struct post *posts[], int totalPosts)
 	fprintf(f, "</ul>\n</article>\n<hl>\n");
 	fprintf(f, footer);
 	fclose(f);
+	printf("-- archive.html complete.\n");
 	return 0;
 }
 
-void errprintf(const char *function, int error)
-{
-	printf("%s ERROR: %d\n", function, error);
-}
 
+/* Recursively copies all the static files in RESOURCEDIR to HTMLDIR */
 void copy_resources(char *dir)
 {
-	printf("DEBUG: Creating directory %s\n", dir);
+	printf("-- Copying resources...\n");
+	printf("Creating directory %s\n", dir);
 	sprintf(buf, "%s%s", HTMLDIR, dir + strlen(RESOURCEDIR));
 	create_directory(buf);
 	char t_dest[MAX_URL_CHARS];
@@ -277,6 +287,7 @@ void copy_resources(char *dir)
 	struct dirent **t_files;
 	printf("Scanning directory %s\n", dir);
 	int t_count = scandir(dir, &t_files, NULL, NULL);
+	int t_cleanup = t_count;
 	while(t_count-- > 0) {
 		if(t_files[t_count]->d_name[0] == '.')
 			continue;
@@ -291,9 +302,12 @@ void copy_resources(char *dir)
 		}
 		if(S_ISREG(t_stat.st_mode)) {	
 			sprintf(t_dest, "%s%s", HTMLDIR, buf + strlen(RESOURCEDIR));
-			printf("DEBUG: copying %s to %s\n", buf, t_dest);
+			printf("Copying %s to %s\n", buf, t_dest);
 			copy_file(buf, t_dest);
 		}
 	}
-
+	while(t_cleanup-- > 0)
+		free(t_files[t_cleanup]);
+	free(t_files);
+	printf("-- Finished copying resources.\n");
 }
