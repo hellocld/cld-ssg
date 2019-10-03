@@ -31,6 +31,7 @@ struct post *create_post(const char *file);
 char *get_post_title(struct cmark_node *root);
 struct tm *get_post_time(const char *file);
 void free_post(struct post *p);
+int insert_post_time(struct cmark_node *root, struct tm *time);
 
 int write_index(struct post *posts[], int totalPosts);
 int write_archive(struct post *posts[], int totalPosts);
@@ -114,12 +115,17 @@ struct post *create_post(const char *file)
 	struct cmark_node *t_root = cmark_parse_document(
 			tmp, strlen(tmp), CMARK_OPT_DEFAULT);
 	free(tmp);
-	printf("Rendering HTML...\n");
-	/* convert the markdown to html */
-	p->content = cmark_render_html(t_root, CMARK_OPT_DEFAULT);
 	printf("Extracting title...\n");
 	/* extract the post title from the first header in the post */
 	p->title = get_post_title(t_root);
+	printf("Generating post time...\n");
+	/* generate the struct tm representing the post date */
+	p->time = get_post_time(file);
+	printf("Inserting post time into cmark tree...\n");
+	insert_post_time(t_root, p->time);
+	printf("Rendering HTML...\n");
+	/* convert the markdown to html */
+	p->content = cmark_render_html(t_root, CMARK_OPT_DEFAULT);
 	printf("Generating html filename...\n");
 	/* generate the html file name */
 	p->fhtml = malloc(MAX_URL_CHARS);
@@ -132,9 +138,6 @@ struct post *create_post(const char *file)
 		if(*t_html == ' ')
 			*t_html = '-';
 	strncat(p->fhtml, ".html", 6);
-	printf("Generating post time...\n");
-	/* generate the struct tm representing the post date */
-	p->time = get_post_time(file);
 	printf("Generating html web directory...\n");
 	/* generate the base directory of the post */
 	p->dir = malloc(MAX_URL_CHARS);
@@ -181,6 +184,31 @@ struct tm *get_post_time(const char *file)
 	if(strptime(buf, "%Y-%m-%d-%H-%M", time) == NULL)
 		printf("ERROR: Failed to convert time\n");
 	return time;
+}
+
+/* Inserts a new text node containing the date and time of the post */
+int insert_post_time(struct cmark_node *root, struct tm *time)
+{
+	printf("-- Inserting date into post...\n");
+	cmark_iter *t_iter = cmark_iter_new(root);
+	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
+		if(cmark_node_get_type(cmark_iter_get_node(t_iter)) == CMARK_NODE_HEADING)
+			break;
+	
+	/* Store the parent HEADING node */
+	cmark_node *t_title = cmark_iter_get_node(t_iter);
+	
+	/* Create the new node for the date */
+	cmark_node *t_date_block = cmark_node_new(CMARK_NODE_HTML_BLOCK);
+	/* Create the date string */
+	char timebuf[MAX_URL_CHARS];
+	strftime(timebuf, MAX_URL_CHARS, "%A, %B %d, %Y", time);
+	sprintf(buf, "<p class=\"postdate\">%s</p>", timebuf);
+	if(!cmark_node_set_literal(t_date_block, buf))
+		return -1;
+	cmark_node_insert_after(t_title, t_date_block);
+	printf("-- Date inserted.\n");
+	return 0;
 }
 
 /* Frees a post from the heap */
