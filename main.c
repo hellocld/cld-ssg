@@ -113,7 +113,7 @@ struct post *create_post(const char *file)
 	char *tmp = read_text(buf, MAX_POST_CHARS);
 	printf("Parsing post to cmark_node...\n");
 	struct cmark_node *t_root = cmark_parse_document(
-			tmp, strlen(tmp), CMARK_OPT_DEFAULT);
+			tmp, strlen(tmp), CMARK_OPT_UNSAFE);
 	free(tmp);
 	printf("Extracting title...\n");
 	/* extract the post title from the first header in the post */
