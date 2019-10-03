@@ -125,7 +125,7 @@ struct post *create_post(const char *file)
 	insert_post_time(t_root, p->time);
 	printf("Rendering HTML...\n");
 	/* convert the markdown to html */
-	p->content = cmark_render_html(t_root, CMARK_OPT_DEFAULT);
+	p->content = cmark_render_html(t_root, CMARK_OPT_UNSAFE);
 	printf("Generating html filename...\n");
 	/* generate the html file name */
 	p->fhtml = malloc(MAX_URL_CHARS);
