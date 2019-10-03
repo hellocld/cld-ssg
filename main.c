@@ -202,7 +202,7 @@ int insert_post_time(struct cmark_node *root, struct tm *time)
 	cmark_node *t_date_block = cmark_node_new(CMARK_NODE_HTML_BLOCK);
 	/* Create the date string */
 	char timebuf[MAX_URL_CHARS];
-	strftime(timebuf, MAX_URL_CHARS, "%A, %B %d, %Y", time);
+	strftime(timebuf, MAX_URL_CHARS, "%A, %B %e, %Y", time);
 	sprintf(buf, "<p class=\"postdate\">%s</p>", timebuf);
 	if(!cmark_node_set_literal(t_date_block, buf))
 		return -1;
