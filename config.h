@@ -5,6 +5,7 @@
  * index.html, char* lengths, etc.
  */
 
+#define WEBSITE "https://hellocld.com/"
 /* Root directory for the generated website */
 #define HTMLDIR "html/"
 /* Directory where .md posts are saved */
@@ -14,6 +15,8 @@
 /* Header and footer files */
 #define HEADER_HTML "assets/header.html"
 #define FOOTER_HTML "assets/footer.html"
+#define HEADER_RSS  "assets/headerRSS.xml"
+#define FOOTER_RSS  "assets/footerRSS.xml"
 
 #define INDEX_POSTS 10
 

@@ -23,19 +23,21 @@ struct post {
 	char *fsource;
 	char *fhtml;
 	char *content;
+	char *desc;
 	struct tm *time;
 };
 
 /* Post generation functions */
 struct post *create_post(const char *file);
 char *get_post_title(struct cmark_node *root);
+char *get_post_desc(struct cmark_node *root);
 struct tm *get_post_time(const char *file);
 void free_post(struct post *p);
 int insert_post_time(struct cmark_node *root, struct tm *time);
 
 int write_index(struct post *posts[], int totalPosts);
 int write_archive(struct post *posts[], int totalPosts);
-int write_rss(struct post *posts, int totalPosts);
+int write_rss(struct post *posts[], int totalPosts);
 int write_post(struct post *post);
 
 void copy_resources(char *);
@@ -45,6 +47,8 @@ void errprintf(const char *, int);
 char buf[MAX_POST_CHARS];
 char *header;
 char *footer;
+char *rssHeader;
+char *rssFooter;
 
 int main()
 {
@@ -52,6 +56,8 @@ int main()
 	/* Load header and footer html */
 	header = read_text(HEADER_HTML, MAX_POST_CHARS);
 	footer = read_text(FOOTER_HTML, MAX_POST_CHARS);
+	rssHeader = read_text(HEADER_RSS, MAX_POST_CHARS);
+	rssFooter = read_text(FOOTER_RSS, MAX_POST_CHARS);
 
 	/* Load all posts */
 	struct dirent **t_mds;
@@ -74,6 +80,9 @@ int main()
 
 	/* Write archive.html */
 	write_archive(posts, t_postcount);
+
+	/* write the rss feed */
+	write_rss(posts, t_postcount);
 
 	/* Copy images/videos/audio/static pages */
 	copy_resources(RESOURCEDIR);
@@ -118,6 +127,8 @@ struct post *create_post(const char *file)
 	printf("Extracting title...\n");
 	/* extract the post title from the first header in the post */
 	p->title = get_post_title(t_root);
+	printf("Extracting description...\n");
+	p->desc = get_post_desc(t_root);
 	printf("Generating post time...\n");
 	/* generate the struct tm representing the post date */
 	p->time = get_post_time(file);
@@ -174,6 +185,29 @@ char *get_post_title(struct cmark_node *root)
 	while((*t++ = buf[i++]))
 		;
 	return title;
+}
+
+/* Gets the first paragraph (or make a blank one) for the RSS description */
+char *get_post_desc(struct cmark_node *root)
+{
+	cmark_iter *t_iter = cmark_iter_new(root);
+	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
+		if(cmark_node_get_type(cmark_iter_get_node(t_iter)) == CMARK_NODE_PARAGRAPH)
+			break;
+	cmark_node *t_desc = cmark_iter_get_node(t_iter);
+	cmark_iter *t_descIter = cmark_iter_new(t_desc);
+	buf[0] = '\0';
+	while(cmark_iter_next(t_descIter) != CMARK_EVENT_DONE)
+		if(cmark_node_get_type(cmark_iter_get_node(t_descIter)) == CMARK_NODE_TEXT)
+			strcat(buf, cmark_node_get_literal(cmark_iter_get_node(t_descIter)));
+	cmark_iter_free(t_iter);
+	cmark_iter_free(t_descIter);
+	char *desc = malloc(strlen(buf)+1);
+	char *t = desc;
+	int i = 0;
+	while((*t++ = buf[i++]))
+		;
+	return desc;
 }
 
 /* Generates a tm struct based on the time in the post filename */
@@ -301,6 +335,33 @@ int write_archive(struct post *posts[], int totalPosts)
 	return 0;
 }
 
+int write_rss(struct post *posts[], int totalPosts)
+{
+	printf("-- Writing RSS feed...\n");
+	sprintf(buf, "%s%s", HTMLDIR, "feed.xml");
+	FILE *f = fopen(buf, "w");
+	fprintf(f, rssHeader);
+	while(totalPosts-- > 0) {
+		fprintf(f, "<item>\n<title>%s</title>\n<link>%s%s%s</link>\n",
+				posts[totalPosts]->title,
+				WEBSITE,
+				posts[totalPosts]->dir,
+				posts[totalPosts]->fhtml);
+		fprintf(f, "<description>");
+		int i;
+		char *c = posts[totalPosts]->desc;
+		for(i = 0; i < 200 && *c != '\0'; ++i) {
+			fprintf(f, "%c", *c++);
+		}
+		if(*c != '\0')
+			fprintf(f, "...");
+		fprintf(f, "</description>\n</item>\n");
+	}
+	fprintf(f, rssFooter);
+	fclose(f);
+	printf("-- feed.xml complete.\n");
+	return 0;
+}
 
 /* Recursively copies all the static files in RESOURCEDIR to HTMLDIR */
 void copy_resources(char *dir)
