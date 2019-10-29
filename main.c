@@ -115,6 +115,7 @@ int md_filter(const struct dirent *d)
 struct post *create_post(const char *file)
 {
 	struct post *p = malloc(sizeof(struct post));
+	p->time = NULL;
 	p->fsource = malloc(MAX_URL_CHARS);
 	memcpy(p->fsource, file, MAX_URL_CHARS);
 
@@ -137,7 +138,8 @@ struct post *create_post(const char *file)
 	p->desc = get_post_desc(t_root);
 	printf("Generating post time...\n");
 	/* generate the struct tm representing the post date */
-	p->time = get_post_time(file);
+	if(!p->is_static)
+		p->time = get_post_time(file);
 	printf("Inserting post time into cmark tree...\n");
 	if(!p->is_static)
 		insert_post_time(t_root, p->time);
@@ -264,7 +266,8 @@ void free_post(struct post *p)
 	free(p->fsource);
 	free(p->fhtml);
 	free(p->content);
-	free(p->time);
+	if(p->time != NULL)
+		free(p->time);
 	free(p);
 }
 
@@ -302,7 +305,9 @@ int write_index(struct post *posts[], int totalPosts)
 		return -1;
 	}
 	int c = 0;
-	while(totalPosts-- > 0 && c++ < INDEX_POSTS) {
+	while(totalPosts-- > 0 && c < INDEX_POSTS) {
+		if(posts[totalPosts]->is_static)
+			continue;
 		fprintf(f, "<article>\n");
 		if(fprintf(f, posts[totalPosts]->content) < 0) {
 			errprintf("write_index", errno);
@@ -312,6 +317,7 @@ int write_index(struct post *posts[], int totalPosts)
 		fprintf(f, "</article>\n");
 		if(totalPosts > 0) 
 			fprintf(f, "<hr>\n");
+		c++;
 	}
 	if(fprintf(f, footer) < 0) {
 		errprintf("write_index", errno);
@@ -332,6 +338,8 @@ int write_archive(struct post *posts[], int totalPosts)
 	fprintf(f, header);
 	fprintf(f, "<article class=\"archive\">\n<ul>\n");
 	while(totalPosts-- > 0) {
+		if(posts[totalPosts]->is_static)
+			continue;
 		strftime(buf, MAX_URL_CHARS, "%Y-%m-%d", posts[totalPosts]->time);
 		fprintf(f, "<li><a href=\"%s%s\">%s - %s</a></li>\n",
 				posts[totalPosts]->dir,
@@ -415,7 +423,11 @@ void copy_resources(char *dir)
 /* Checks if a file is a blog post or a static page */
 int is_post_static(char *file)
 {
-	if (strncmp(file, STATIC_PAGE, sizeof(STATIC_PAGE)) == 0)
+	printf("-- Checking if post %s is static...\n", file);
+	if (strncmp(file, STATIC_PAGE, sizeof(STATIC_PAGE) - 1) == 0) {
+		printf("Yep!\n");
 		return 1;
+	}
+	printf("Nope!\n");
 	return 0;
 }
