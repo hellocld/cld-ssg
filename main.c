@@ -25,6 +25,7 @@ struct post {
 	char *content;
 	char *desc;
 	struct tm *time;
+	int is_static;
 };
 
 /* Post generation functions */
@@ -39,6 +40,7 @@ int write_index(struct post *posts[], int totalPosts);
 int write_archive(struct post *posts[], int totalPosts);
 int write_rss(struct post *posts[], int totalPosts);
 int write_post(struct post *post);
+int is_post_static(char *file);
 
 void copy_resources(char *);
 
@@ -120,6 +122,10 @@ struct post *create_post(const char *file)
 	printf("Loading post %s ... \n", buf);
 	/* read in the post text file */
 	char *tmp = read_text(buf, MAX_POST_CHARS);
+	/* Check if it's a post or a static (other) page */
+	p->is_static = is_post_static(p->fsource);
+	if(p->is_static)
+		printf("** Page %s is static\n", p->fsource);
 	printf("Parsing post to cmark_node...\n");
 	struct cmark_node *t_root = cmark_parse_document(
 			tmp, strlen(tmp), CMARK_OPT_UNSAFE);
@@ -133,7 +139,8 @@ struct post *create_post(const char *file)
 	/* generate the struct tm representing the post date */
 	p->time = get_post_time(file);
 	printf("Inserting post time into cmark tree...\n");
-	insert_post_time(t_root, p->time);
+	if(!p->is_static)
+		insert_post_time(t_root, p->time);
 	printf("Rendering HTML...\n");
 	/* convert the markdown to html */
 	p->content = cmark_render_html(t_root, CMARK_OPT_UNSAFE);
@@ -152,10 +159,14 @@ struct post *create_post(const char *file)
 	printf("Generating html web directory...\n");
 	/* generate the base directory of the post */
 	p->dir = malloc(MAX_URL_CHARS);
-	sprintf(p->dir, "%d/%02d/%02d/", 
+	if(!p->is_static) {
+		sprintf(p->dir, "%d/%02d/%02d/", 
 		p->time->tm_year + 1900,
 		p->time->tm_mon,
 		p->time->tm_mday);
+
+	} else 
+		sprintf(p->dir, "");
 	printf("Generation complete. Freeing node...\n");
 	cmark_node_free(t_root);
 	return p;
@@ -399,4 +410,12 @@ void copy_resources(char *dir)
 		free(t_files[t_cleanup]);
 	free(t_files);
 	printf("-- Finished copying resources.\n");
+}
+
+/* Checks if a file is a blog post or a static page */
+int is_post_static(char *file)
+{
+	if (strncmp(file, STATIC_PAGE, sizeof(STATIC_PAGE)) == 0)
+		return 1;
+	return 0;
 }

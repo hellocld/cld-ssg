@@ -25,3 +25,4 @@
 #define MAX_TITLE_CHARS	1000  /* far is 18459 bytes as html */
 #define MAX_URL_CHARS	1000  /* hellocld.com/2019/06/11/bitcrushed-5.html */
 
+#define STATIC_PAGE "static"
