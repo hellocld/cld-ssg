@@ -115,7 +115,6 @@ int md_filter(const struct dirent *d)
 struct post *create_post(const char *file)
 {
 	struct post *p = malloc(sizeof(struct post));
-	p->time = NULL;
 	p->fsource = malloc(MAX_URL_CHARS);
 	memcpy(p->fsource, file, MAX_URL_CHARS);
 
@@ -138,8 +137,7 @@ struct post *create_post(const char *file)
 	p->desc = get_post_desc(t_root);
 	printf("Generating post time...\n");
 	/* generate the struct tm representing the post date */
-	if(!p->is_static)
-		p->time = get_post_time(file);
+	p->time = get_post_time(p->fsource);
 	printf("Inserting post time into cmark tree...\n");
 	if(!p->is_static)
 		insert_post_time(t_root, p->time);
@@ -228,14 +226,19 @@ struct tm *get_post_time(const char *file)
 {
 	struct tm *time = malloc(sizeof(struct tm));
 	strncpy(buf, file, 16);
-	if(strptime(buf, "%Y-%m-%d-%H-%M", time) == NULL)
+	if(strptime(buf, "%Y-%m-%d-%H-%M", time) == NULL) {
 		printf("ERROR: Failed to convert time\n");
+		free(time);
+		return NULL;
+	}
 	return time;
 }
 
 /* Inserts a new text node containing the date and time of the post */
 int insert_post_time(struct cmark_node *root, struct tm *time)
 {
+	if(time == NULL)
+		return 1;
 	printf("-- Inserting date into post...\n");
 	cmark_iter *t_iter = cmark_iter_new(root);
 	while(cmark_iter_next(t_iter) != CMARK_EVENT_DONE)
