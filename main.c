@@ -162,7 +162,7 @@ struct post *create_post(const char *file)
 	if(!p->is_static) {
 		sprintf(p->dir, "%d/%02d/%02d/", 
 		p->time->tm_year + 1900,
-		p->time->tm_mon,
+		p->time->tm_mon + 1,
 		p->time->tm_mday);
 
 	} else 
