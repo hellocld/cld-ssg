@@ -46,7 +46,7 @@ void copy_resources(char *);
 
 void errprintf(const char *, int);
 
-char buf[MAX_POST_CHARS];
+char bufPost[MAX_POST_CHARS];
 char *header;
 char *footer;
 char *rssHeader;
@@ -118,10 +118,10 @@ struct post *create_post(const char *file)
 	p->fsource = malloc(MAX_URL_CHARS);
 	memcpy(p->fsource, file, MAX_URL_CHARS);
 
-	sprintf(buf, "%s%s", POSTDIR, p->fsource);
-	printf("Loading post %s ... \n", buf);
+	sprintf(bufPost, "%s%s", POSTDIR, p->fsource);
+	printf("Loading post %s ... \n", bufPost);
 	/* read in the post text file */
-	char *tmp = read_text(buf, MAX_POST_CHARS);
+	char *tmp = read_text(bufPost, MAX_POST_CHARS);
 	/* Check if it's a post or a static (other) page */
 	p->is_static = is_post_static(p->fsource);
 	if(p->is_static)
@@ -184,16 +184,16 @@ char *get_post_title(struct cmark_node *root)
 	/* Store the parent HEADING node */
 	cmark_node *t_title = cmark_iter_get_node(t_iter);
 	cmark_iter *t_titleIter = cmark_iter_new(t_title);
-	buf[0] = '\0';
+	bufPost[0] = '\0';
 	while(cmark_iter_next(t_titleIter) != CMARK_EVENT_DONE)
 		if(cmark_node_get_type(cmark_iter_get_node(t_titleIter)) == CMARK_NODE_TEXT) 
-			strcat(buf, cmark_node_get_literal(cmark_iter_get_node(t_titleIter)));
+			strcat(bufPost, cmark_node_get_literal(cmark_iter_get_node(t_titleIter)));
 	cmark_iter_free(t_iter);
 	cmark_iter_free(t_titleIter);
-	char *title = malloc(strlen(buf)+1);
+	char *title = malloc(strlen(bufPost)+1);
 	char *t = title;
 	int i = 0;
-	while((*t++ = buf[i++]))
+	while((*t++ = bufPost[i++]))
 		;
 	return title;
 }
@@ -207,16 +207,16 @@ char *get_post_desc(struct cmark_node *root)
 			break;
 	cmark_node *t_desc = cmark_iter_get_node(t_iter);
 	cmark_iter *t_descIter = cmark_iter_new(t_desc);
-	buf[0] = '\0';
+	bufPost[0] = '\0';
 	while(cmark_iter_next(t_descIter) != CMARK_EVENT_DONE)
 		if(cmark_node_get_type(cmark_iter_get_node(t_descIter)) == CMARK_NODE_TEXT)
-			strcat(buf, cmark_node_get_literal(cmark_iter_get_node(t_descIter)));
+			strcat(bufPost, cmark_node_get_literal(cmark_iter_get_node(t_descIter)));
 	cmark_iter_free(t_iter);
 	cmark_iter_free(t_descIter);
-	char *desc = malloc(strlen(buf)+1);
+	char *desc = malloc(strlen(bufPost)+1);
 	char *t = desc;
 	int i = 0;
-	while((*t++ = buf[i++]))
+	while((*t++ = bufPost[i++]))
 		;
 	return desc;
 }
@@ -225,8 +225,8 @@ char *get_post_desc(struct cmark_node *root)
 struct tm *get_post_time(const char *file)
 {
 	struct tm *time = malloc(sizeof(struct tm));
-	strncpy(buf, file, 16);
-	if(strptime(buf, "%Y-%m-%d-%H-%M", time) == NULL) {
+	strncpy(bufPost, file, 16);
+	if(strptime(bufPost, "%Y-%m-%d-%H-%M", time) == NULL) {
 		printf("ERROR: Failed to convert time\n");
 		free(time);
 		return NULL;
@@ -251,10 +251,10 @@ int insert_post_time(struct cmark_node *root, struct tm *time)
 	/* Create the new node for the date */
 	cmark_node *t_date_block = cmark_node_new(CMARK_NODE_HTML_BLOCK);
 	/* Create the date string */
-	char timebuf[MAX_URL_CHARS];
-	strftime(timebuf, MAX_URL_CHARS, "%A, %B %e, %Y", time);
-	sprintf(buf, "<p class=\"postdate\">%s</p>", timebuf);
-	if(!cmark_node_set_literal(t_date_block, buf))
+	char timebufPost[MAX_URL_CHARS];
+	strftime(timebufPost, MAX_URL_CHARS, "%A, %B %e, %Y", time);
+	sprintf(bufPost, "<p class=\"postdate\">%s</p>", timebufPost);
+	if(!cmark_node_set_literal(t_date_block, bufPost))
 		return -1;
 	cmark_node_insert_after(t_title, t_date_block);
 	printf("-- Date inserted.\n");
@@ -279,15 +279,15 @@ int write_post(struct post *post)
 {
 	printf("-- Writing post %s...\n", post->title);
 	/* Generate the directory structure */
-	sprintf(buf, "%s%s", HTMLDIR, post->dir);
+	sprintf(bufPost, "%s%s", HTMLDIR, post->dir);
 
-	if(create_directory(buf) < 0)
+	if(create_directory(bufPost) < 0)
 		return -1;
 
-	sprintf(buf, "%s%s%s", HTMLDIR, post->dir, post->fhtml);
-	FILE *f = fopen(buf, "w");
-	sprintf(buf, "%s<article>%s</article>%s", header, post->content, footer);
-	fprintf(f, buf);
+	sprintf(bufPost, "%s%s%s", HTMLDIR, post->dir, post->fhtml);
+	FILE *f = fopen(bufPost, "w");
+	sprintf(bufPost, "%s<article>%s</article>%s", header, post->content, footer);
+	fprintf(f, bufPost);
 	fclose(f);
 	printf("-- Post complete.\n");
 	return 0;
@@ -297,8 +297,8 @@ int write_post(struct post *post)
 int write_index(struct post *posts[], int totalPosts)
 {
 	printf("-- Writing index.html...\n");
-	sprintf(buf, "%s%s", HTMLDIR, "index.html");
-	FILE *f = fopen(buf, "w");
+	sprintf(bufPost, "%s%s", HTMLDIR, "index.html");
+	FILE *f = fopen(bufPost, "w");
 	if(f == NULL) {
 		errprintf("write_index", errno);
 		return -1;
@@ -336,18 +336,18 @@ int write_index(struct post *posts[], int totalPosts)
 int write_archive(struct post *posts[], int totalPosts)
 {
 	printf("-- Writing archive.html...\n");
-	sprintf(buf, "%s%s", HTMLDIR, "archive.html");
-	FILE *f = fopen(buf, "w");
+	sprintf(bufPost, "%s%s", HTMLDIR, "archive.html");
+	FILE *f = fopen(bufPost, "w");
 	fprintf(f, header);
 	fprintf(f, "<article class=\"archive\">\n<ul>\n");
 	while(totalPosts-- > 0) {
 		if(posts[totalPosts]->is_static)
 			continue;
-		strftime(buf, MAX_URL_CHARS, "%Y-%m-%d", posts[totalPosts]->time);
+		strftime(bufPost, MAX_URL_CHARS, "%Y-%m-%d", posts[totalPosts]->time);
 		fprintf(f, "<li><a href=\"%s%s\">%s - %s</a></li>\n",
 				posts[totalPosts]->dir,
 				posts[totalPosts]->fhtml,
-				buf,
+				bufPost,
 				posts[totalPosts]->title);
 	}
 	fprintf(f, "</ul>\n</article>\n<hl>\n");
@@ -360,8 +360,8 @@ int write_archive(struct post *posts[], int totalPosts)
 int write_rss(struct post *posts[], int totalPosts)
 {
 	printf("-- Writing RSS feed...\n");
-	sprintf(buf, "%s%s", HTMLDIR, "feed.xml");
-	FILE *f = fopen(buf, "w");
+	sprintf(bufPost, "%s%s", HTMLDIR, "feed.xml");
+	FILE *f = fopen(bufPost, "w");
 	fprintf(f, rssHeader);
 	while(totalPosts-- > 0) {
 		fprintf(f, "<item>\n<title>%s</title>\n<link>%s%s%s</link>\n",
@@ -390,8 +390,8 @@ void copy_resources(char *dir)
 {
 	printf("-- Copying resources...\n");
 	printf("Creating directory %s\n", dir);
-	sprintf(buf, "%s%s", HTMLDIR, dir + strlen(RESOURCEDIR));
-	create_directory(buf);
+	sprintf(bufPost, "%s%s", HTMLDIR, dir + strlen(RESOURCEDIR));
+	create_directory(bufPost);
 	char t_dest[MAX_URL_CHARS];
 	struct stat t_stat;
 	/* find all files in resource directory */
@@ -403,8 +403,8 @@ void copy_resources(char *dir)
 		if(t_files[t_count]->d_name[0] == '.')
 			continue;
 		printf("Found %s%s\n", dir, t_files[t_count]->d_name);
-		sprintf(buf, "%s%s", dir, t_files[t_count]->d_name);
-		stat(buf, &t_stat);
+		sprintf(bufPost, "%s%s", dir, t_files[t_count]->d_name);
+		stat(bufPost, &t_stat);
 		if(S_ISDIR(t_stat.st_mode)) {
 			char t_dir[MAX_URL_CHARS];
 			sprintf(t_dir, "%s%s/", dir, t_files[t_count]->d_name);
@@ -412,9 +412,9 @@ void copy_resources(char *dir)
 			copy_resources(t_dir);
 		}
 		if(S_ISREG(t_stat.st_mode)) {	
-			sprintf(t_dest, "%s%s", HTMLDIR, buf + strlen(RESOURCEDIR));
-			printf("Copying %s to %s\n", buf, t_dest);
-			copy_file(buf, t_dest);
+			sprintf(t_dest, "%s%s", HTMLDIR, bufPost + strlen(RESOURCEDIR));
+			printf("Copying %s to %s\n", bufPost, t_dest);
+			copy_file(bufPost, t_dest);
 		}
 	}
 	while(t_cleanup-- > 0)
