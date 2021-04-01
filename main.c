@@ -367,7 +367,7 @@ int write_rss(struct post *posts[], int totalPosts)
 	int oldestPostIdx = totalPosts - MAX_RSS_POSTS;
 	while(totalPosts-- > oldestPostIdx) {
 		if(posts[totalPosts]->is_static) {
-			oldestPostIdx++;
+			oldestPostIdx--;
 			continue;
 		}
 		fprintf(f, "<item>\n");
@@ -385,11 +385,12 @@ int write_rss(struct post *posts[], int totalPosts)
 			fprintf(f, "%c", *c++);
 		}
 		fprintf(f, "</description>\n");
+		fprintf(f, "<content:encoded><![CDATA[");
 		c = posts[totalPosts]->content;
 		for(i = 0; i < MAX_POST_CHARS && *c != '\0'; ++i) {
 			fprintf(f, "%c", *c++);
 		}
-
+		fprintf(f, "]]></content:encoded>\n");
 		fprintf(f, "</item>\n");
 	}
 	fprintf(f, rssFooter);
