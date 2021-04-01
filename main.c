@@ -363,7 +363,8 @@ int write_rss(struct post *posts[], int totalPosts)
 	sprintf(bufPost, "%s%s", HTMLDIR, "feed.xml");
 	FILE *f = fopen(bufPost, "w");
 	fprintf(f, rssHeader);
-	while(totalPosts-- > 0) {
+	int oldestPostIdx = totalPosts - MAX_RSS_POSTS;
+	while(totalPosts-- > oldestPostIdx) {
 		fprintf(f, "<item>\n<title>%s</title>\n<link>%s%s%s</link>\n",
 				posts[totalPosts]->title,
 				WEBSITE,

@@ -19,6 +19,7 @@
 #define FOOTER_RSS  "assets/footerRSS.xml"
 
 #define INDEX_POSTS 10
+#define MAX_RSS_POSTS 10 /* seems like a good idea to cap the feed post count */
 
 /* I should probably use some system defaults for these */
 #define MAX_POST_CHARS	30000 /* The biggest post I've written thus */
