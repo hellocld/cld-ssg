@@ -365,21 +365,20 @@ int write_rss(struct post *posts[], int totalPosts)
 	fprintf(f, rssHeader);
 	int oldestPostIdx = totalPosts - MAX_RSS_POSTS;
 	while(totalPosts-- > oldestPostIdx) {
-		fprintf(f, "<item>\n<title>%s</title>\n<link>%s%s%s</link>\n",
-				posts[totalPosts]->title,
+		fprintf(f, "<item>\n");
+		fprintf(f, "<title>%s</title>\n", posts[totalPosts]->title);
+		fprintf(f, "<link>%s%s%s</link>\n",
 				WEBSITE,
 				posts[totalPosts]->dir,
 				posts[totalPosts]->fhtml);
 		fprintf(f, "<description>");
 		int i;
 		char *c = posts[totalPosts]->content;
-		/*for(i = 0; i < 200 && *c != '\0'; ++i) {*/
 		for(i = 0; i < MAX_POST_CHARS && *c != '\0'; ++i) {
 			fprintf(f, "%c", *c++);
 		}
-		/*if(*c != '\0')*/
-		/*	fprintf(f, "...");*/
-		fprintf(f, "</description>\n</item>\n");
+		fprintf(f, "</description>\n");
+		fprintf(f, "</item>\n");
 	}
 	fprintf(f, rssFooter);
 	fclose(f);
