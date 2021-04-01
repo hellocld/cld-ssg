@@ -61,7 +61,6 @@ int main()
 	rssHeader = read_text(HEADER_RSS, MAX_POST_CHARS);
 	rssFooter = read_text(FOOTER_RSS, MAX_POST_CHARS);
 
-	/* Load all posts */
 	struct dirent **t_mds;
 	int t_postcount = scandir(POSTDIR, &t_mds, md_filter, alphasort);
 	if(t_postcount <= 0) {
@@ -365,12 +364,19 @@ int write_rss(struct post *posts[], int totalPosts)
 	fprintf(f, rssHeader);
 	int oldestPostIdx = totalPosts - MAX_RSS_POSTS;
 	while(totalPosts-- > oldestPostIdx) {
+		if(posts[totalPosts]->is_static) {
+			oldestPostIdx++;
+			continue;
+		}
 		fprintf(f, "<item>\n");
 		fprintf(f, "<title>%s</title>\n", posts[totalPosts]->title);
 		fprintf(f, "<link>%s%s%s</link>\n",
 				WEBSITE,
 				posts[totalPosts]->dir,
 				posts[totalPosts]->fhtml);
+		printf("-- DEBUG: Post Time: %d\n", posts[totalPosts]->time->tm_mon);
+		strftime(bufPost, MAX_URL_CHARS, "%a, %d %b %y %T %z", posts[totalPosts]->time);
+		fprintf(f, "<pubDate>%s</pubDate>\n", bufPost);
 		fprintf(f, "<description>");
 		int i;
 		char *c = posts[totalPosts]->content;
