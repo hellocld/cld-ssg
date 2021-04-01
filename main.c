@@ -224,12 +224,14 @@ char *get_post_desc(struct cmark_node *root)
 struct tm *get_post_time(const char *file)
 {
 	struct tm *time = malloc(sizeof(struct tm));
+	memset(time, 0, sizeof(struct tm));
 	strncpy(bufPost, file, 16);
 	if(strptime(bufPost, "%Y-%m-%d-%H-%M", time) == NULL) {
 		printf("ERROR: Failed to convert time\n");
 		free(time);
 		return NULL;
 	}
+
 	return time;
 }
 
@@ -374,8 +376,7 @@ int write_rss(struct post *posts[], int totalPosts)
 				WEBSITE,
 				posts[totalPosts]->dir,
 				posts[totalPosts]->fhtml);
-		printf("-- DEBUG: Post Time: %d\n", posts[totalPosts]->time->tm_mon);
-		strftime(bufPost, MAX_URL_CHARS, "%a, %d %b %y %T %z", posts[totalPosts]->time);
+		strftime(bufPost, MAX_URL_CHARS, "%a, %d %b %y %T %Z", posts[totalPosts]->time);
 		fprintf(f, "<pubDate>%s</pubDate>\n", bufPost);
 		fprintf(f, "<description>");
 		int i;
