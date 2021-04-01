@@ -380,11 +380,16 @@ int write_rss(struct post *posts[], int totalPosts)
 		fprintf(f, "<pubDate>%s</pubDate>\n", bufPost);
 		fprintf(f, "<description>");
 		int i;
-		char *c = posts[totalPosts]->content;
+		char *c = posts[totalPosts]->desc;
 		for(i = 0; i < MAX_POST_CHARS && *c != '\0'; ++i) {
 			fprintf(f, "%c", *c++);
 		}
 		fprintf(f, "</description>\n");
+		c = posts[totalPosts]->content;
+		for(i = 0; i < MAX_POST_CHARS && *c != '\0'; ++i) {
+			fprintf(f, "%c", *c++);
+		}
+
 		fprintf(f, "</item>\n");
 	}
 	fprintf(f, rssFooter);
