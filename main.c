@@ -371,12 +371,13 @@ int write_rss(struct post *posts[], int totalPosts)
 				posts[totalPosts]->fhtml);
 		fprintf(f, "<description>");
 		int i;
-		char *c = posts[totalPosts]->desc;
-		for(i = 0; i < 200 && *c != '\0'; ++i) {
+		char *c = posts[totalPosts]->content;
+		/*for(i = 0; i < 200 && *c != '\0'; ++i) {*/
+		for(i = 0; i < MAX_POST_CHARS && *c != '\0'; ++i) {
 			fprintf(f, "%c", *c++);
 		}
-		if(*c != '\0')
-			fprintf(f, "...");
+		/*if(*c != '\0')*/
+		/*	fprintf(f, "...");*/
 		fprintf(f, "</description>\n</item>\n");
 	}
 	fprintf(f, rssFooter);
